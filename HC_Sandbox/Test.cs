@@ -16,20 +16,18 @@ public class PersonNode
     [DataLoader]
     internal static async Task<IReadOnlyDictionary<Guid, Person>> GetPersonByIdAsync(
         IReadOnlyList<Guid> ids,
-        [Service] IDbContextFactory<EFDbContext> dbContextFactory,
+        [Service] EFDbContext dbContext,
         CancellationToken token)
     {
-        await using var dbContext = await dbContextFactory.CreateDbContextAsync(token);
         return await dbContext.Persons.Where(x => ids.Contains(x.Id)).ToDictionaryAsync(x => x.Id, EFDbContext.UnProxy, token);
     }
 
     [DataLoader]
     internal static async Task<ILookup<Guid, Car>> GetCarsByPersonIdAsync(
         IReadOnlyList<Guid> personIds,
-        [Service] IDbContextFactory<EFDbContext> dbContextFactory,
+        [Service] EFDbContext dbContext,
         CancellationToken token)
     {
-        await using var dbContext = await dbContextFactory.CreateDbContextAsync(token);
         return dbContext.Cars.Where(x => personIds.Contains(x.PersonId)).ToLookup(x => x.PersonId);
     }
 

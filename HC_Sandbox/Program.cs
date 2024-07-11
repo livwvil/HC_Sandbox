@@ -1,4 +1,3 @@
-using GreenDonut;
 using HC_Sandbox;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,18 +6,13 @@ builder.Services
             .AddHttpContextAccessor()
             .AddGraphQLServer()
             .InitializeOnStartup()
-            .RegisterDbContext<EFDbContext>(DbContextKind.Pooled)
-            .AddQueryType()
-            .AddTypeExtension<TestQueries>()
-            //.AddMutationType()
-            //.AddTypeExtension<TestMutations>()
+            .RegisterDbContext<EFDbContext>()
+            .AddHC_SandboxTypes()
             .AddGlobalObjectIdentification()
-            .AddType<PersonNode>()
-            .AddDataLoader<IPersonByIdDataLoader, PersonByIdDataLoader>()
-            .AddDataLoader<ICarsByPersonIdDataLoader, CarsByPersonIdDataLoader>();
+            .AddType<PersonNode>();
 
 
-builder.Services.AddPooledDbContextFactory<EFDbContext>((cfg) =>
+builder.Services.AddDbContext<EFDbContext>((cfg) =>
 {
     cfg.UseLazyLoadingProxies();
     cfg.UseSqlite($"Data Source=domain.db");
@@ -31,7 +25,7 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<IDbContextFactory<EFDbContext>>().CreateDbContext();
+    var context = scope.ServiceProvider.GetRequiredService<EFDbContext>();
     context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
     EFDbContext.Populate(context);

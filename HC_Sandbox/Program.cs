@@ -8,8 +8,9 @@ builder.Services
             .InitializeOnStartup()
             .RegisterDbContext<EFDbContext>()
             .AddHC_SandboxTypes()
-            .AddGlobalObjectIdentification()
-            .AddType<PersonNode>();
+            .AddType<Toyota>()
+            .AddType<Nissan>()
+            .AddGlobalObjectIdentification();
 
 
 builder.Services.AddDbContext<EFDbContext>((cfg) =>

@@ -1,56 +1,60 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace HC_Sandbox;
+﻿namespace HC_Sandbox;
 
 [Node]
-[ExtendObjectType<Person>]
-public class PersonNode
+[ExtendObjectType<Toyota>(IgnoreFields = [nameof(Toyota.Some)])]
+public class ToyotaExtensions
 {
+    [BindMember(nameof(Toyota.InsteadOfIdField))]
+    public Guid GetId([Parent] Toyota parent)
+    {
+        return parent.InsteadOfIdField;
+    }
+
     [NodeResolver]
-    public static async Task<Person> GetAsync(
-        [ID] Guid id,
-        PersonByIdDataLoader personById,
-        CancellationToken cancellationToken
-    ) => await personById.LoadAsync(id, cancellationToken);
+    public static async Task<Toyota> GetAsync([ID] Guid id, EFDbContext context) => context.Toyotas.Find(id) ?? throw new ArgumentException("Not found");
+}
 
-    [DataLoader]
-    internal static async Task<IReadOnlyDictionary<Guid, Person>> GetPersonByIdAsync(
-        IReadOnlyList<Guid> ids,
-        [Service] EFDbContext dbContext,
-        CancellationToken token)
+[Node]
+[ExtendObjectType<Nissan>(IgnoreFields = [nameof(Nissan.Some)])]
+public class NissanExtensions
+{
+    [BindMember(nameof(Nissan.InsteadOfIdField))]
+    public Guid GetId([Parent] Nissan parent)
     {
-        return await dbContext.Persons.Where(x => ids.Contains(x.Id)).ToDictionaryAsync(x => x.Id, EFDbContext.UnProxy, token);
+        return parent.InsteadOfIdField;
     }
 
-    [DataLoader]
-    internal static async Task<ILookup<Guid, Car>> GetCarsByPersonIdAsync(
-        IReadOnlyList<Guid> personIds,
-        [Service] EFDbContext dbContext,
-        CancellationToken token)
-    {
-        return dbContext.Cars.Where(x => personIds.Contains(x.PersonId)).ToLookup(x => x.PersonId);
-    }
+    [NodeResolver]
+    public static async Task<Nissan> GetAsync([ID] Guid id, EFDbContext context) => context.Nissans.Find(id) ?? throw new ArgumentException("Not found");
+}
 
-    public async Task<IEnumerable<Car>> GetCarAsync(
-        [Parent] Person person,
-        IPersonByIdDataLoader personById,
-        ICarsByPersonIdDataLoader carsByPersonId,
-        CancellationToken token)
-
+public class III : InterfaceType<Car>
+{
+    protected override void Configure(IInterfaceTypeDescriptor<Car> descriptor)
     {
-        var p = await personById.LoadAsync(person.Id, token);
-        var c = await carsByPersonId.LoadAsync(p.Id, token);
-        return c;
+        descriptor.Name("ICar");
     }
 }
+
+//public class UnionValue : UnionType
+//{
+//    protected override void Configure(IUnionTypeDescriptor descriptor)
+//    {
+//        descriptor.Name("UnionValue");
+
+//        descriptor.Type<Toyota>();
+
+//        descriptor.Type<Nissan>();
+//    }
+//}
 
 [QueryType]
 public class TestQueries
 {
     // Just to get all ids
-    public async Task<IEnumerable<Person>> GetAllPersonsAsync(EFDbContext dbContext)
+    public async Task<IEnumerable<Car>> GetAllSomesAsync(EFDbContext context)
     {
-        return dbContext.Persons;
+        return Enumerable.Concat<Car>(context.Toyotas, context.Nissans);
     }
 }
 

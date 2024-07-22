@@ -15,7 +15,7 @@ builder.Services
 
 builder.Services.AddDbContext<EFDbContext>((cfg) =>
 {
-    cfg.UseLazyLoadingProxies();
+    //cfg.UseLazyLoadingProxies();
     cfg.UseSqlite($"Data Source=domain.db");
     cfg.EnableSensitiveDataLogging(false);
 });

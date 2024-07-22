@@ -1,7 +1,7 @@
 ﻿namespace HC_Sandbox;
 
 [Node]
-[ExtendObjectType<Toyota>(IgnoreFields = [nameof(Toyota.Some)])]
+[ExtendObjectType<Toyota>(IgnoreProperties = [nameof(Toyota.Some)])]
 public class ToyotaExtensions
 {
     [BindMember(nameof(Toyota.InsteadOfIdField))]
@@ -15,7 +15,7 @@ public class ToyotaExtensions
 }
 
 [Node]
-[ExtendObjectType<Nissan>(IgnoreFields = [nameof(Nissan.Some)])]
+[ExtendObjectType<Nissan>(IgnoreProperties = [nameof(Nissan.Some)])]
 public class NissanExtensions
 {
     [BindMember(nameof(Nissan.InsteadOfIdField))]
@@ -33,6 +33,7 @@ public class III : InterfaceType<Car>
     protected override void Configure(IInterfaceTypeDescriptor<Car> descriptor)
     {
         descriptor.Name("ICar");
+        descriptor.Ignore(x => x.Some);
     }
 }
 

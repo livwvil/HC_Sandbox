@@ -1,6 +1,32 @@
-﻿namespace HC_Sandbox;
+﻿using HotChocolate.Types.Descriptors;
+using System.Reflection;
 
-[Node]
+namespace HC_Sandbox;
+
+public class MyTypeInspector : DefaultTypeInspector
+{
+    public override bool IsMemberIgnored(MemberInfo member)
+    {
+        if (member is null)
+        {
+            throw new ArgumentNullException(nameof(member));
+        }
+
+        //if (member.Name == "Some")
+        //{
+        //    return true;
+        //}
+        var a = member as PropertyInfo;
+        if (a != null && a.PropertyType.Name.Contains(nameof(ISome)))
+        {
+            return true;
+        }
+
+        return base.IsMemberIgnored(member);
+    }
+
+}
+
 [ExtendObjectType<Toyota>(IgnoreProperties = [nameof(Toyota.Some)])]
 public class ToyotaExtensions
 {
@@ -33,7 +59,6 @@ public class III : InterfaceType<Car>
     protected override void Configure(IInterfaceTypeDescriptor<Car> descriptor)
     {
         descriptor.Name("ICar");
-        descriptor.Ignore(x => x.Some);
     }
 }
 

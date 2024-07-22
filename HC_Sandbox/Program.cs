@@ -1,10 +1,12 @@
 using HC_Sandbox;
+using HotChocolate.Types.Descriptors;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services
             .AddHttpContextAccessor()
             .AddGraphQLServer()
+            .TryAddConvention<ITypeInspector, MyTypeInspector>()
             .InitializeOnStartup()
             .RegisterDbContext<EFDbContext>()
             .AddHC_SandboxTypes()

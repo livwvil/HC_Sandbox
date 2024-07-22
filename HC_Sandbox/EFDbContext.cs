@@ -7,6 +7,7 @@ public interface ISome { }
 public abstract class Car
 {
     public string Name2 { get; }
+
     public ISome[] Some { get; } = [];
 }
 

@@ -1,62 +1,67 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿namespace HC_Sandbox;
 
-namespace HC_Sandbox;
+public class DeviceType : ObjectType<Device>
+{
+    protected override void Configure(IObjectTypeDescriptor<Device> descriptor)
+    {
+        descriptor.BindFieldsExplicitly();
+        descriptor.ImplementsNode();
+
+        descriptor.Field(x => x.Id).ID();
+        descriptor.Field(x => x.Name.Value).Name("name");
+    }
+}
+
+public class TripType : ObjectType<Trip>
+{
+    protected override void Configure(IObjectTypeDescriptor<Trip> descriptor)
+    {
+        descriptor.BindFieldsExplicitly();
+
+        descriptor.Field(x => x.Id).ID();
+        descriptor.Field(x => x.Name);
+    }
+}
 
 [Node]
-[ExtendObjectType<Person>]
-public class PersonNode
+public class TripSpecial
 {
-    [NodeResolver]
-    public static async Task<Person> GetAsync(
-        [ID] Guid id,
-        PersonByIdDataLoader personById,
-        CancellationToken cancellationToken
-    ) => await personById.LoadAsync(id, cancellationToken);
+    public Guid Id { get; set; }
 
-    [DataLoader]
-    internal static async Task<IReadOnlyDictionary<Guid, Person>> GetPersonByIdAsync(
-        IReadOnlyList<Guid> ids,
-        [Service] EFDbContext dbContext,
-        CancellationToken token)
-    {
-        return await dbContext.Persons.Where(x => ids.Contains(x.Id)).ToDictionaryAsync(x => x.Id, EFDbContext.UnProxy, token);
-    }
+    public string Name { get; set; }
 
-    [DataLoader]
-    internal static async Task<ILookup<Guid, Car>> GetCarsByPersonIdAsync(
-        IReadOnlyList<Guid> personIds,
-        [Service] EFDbContext dbContext,
-        CancellationToken token)
-    {
-        return dbContext.Cars.Where(x => personIds.Contains(x.PersonId)).ToLookup(x => x.PersonId);
-    }
-
-    public async Task<IEnumerable<Car>> GetCarAsync(
-        [Parent] Person person,
-        IPersonByIdDataLoader personById,
-        ICarsByPersonIdDataLoader carsByPersonId,
-        CancellationToken token)
-
-    {
-        var p = await personById.LoadAsync(person.Id, token);
-        var c = await carsByPersonId.LoadAsync(p.Id, token);
-        return c;
-    }
+    public Device Device { get; set; }
 }
 
 [QueryType]
 public class TestQueries
 {
-    // Just to get all ids
-    public async Task<IEnumerable<Person>> GetAllPersonsAsync(EFDbContext dbContext)
+    [UsePaging(DefaultPageSize = int.MaxValue, MaxPageSize = int.MaxValue, IncludeTotalCount = true)]
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IEnumerable<Device> AllDevices(EFDbContext dbContext)
     {
-        return dbContext.Persons;
+        return dbContext.Devices;
+    }
+
+    public IEnumerable<Trip> AllTrip(EFDbContext dbContext)
+    {
+        return dbContext.Trips;
+    }
+
+    [UsePaging(DefaultPageSize = int.MaxValue, MaxPageSize = int.MaxValue, IncludeTotalCount = true)]
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IEnumerable<TripSpecial> AllTripSpecial(EFDbContext dbContext)
+    {
+        return dbContext.Trips.Join(dbContext.Devices, x => x.DeviceId, x => x.Id,
+            (t, d) => new TripSpecial()
+            {
+                Id = t.Id,
+                Name = t.Name,
+                Device = d
+            });
     }
 }
-
-
-//[MutationType]
-//public class TestMutations
-//{
-
-//}

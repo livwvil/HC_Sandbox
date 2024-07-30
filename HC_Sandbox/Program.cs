@@ -8,15 +8,16 @@ builder.Services
             .InitializeOnStartup()
             .RegisterDbContext<EFDbContext>()
             .AddHC_SandboxTypes()
-            .AddGlobalObjectIdentification()
-            .AddType<PersonNode>();
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddGlobalObjectIdentification();
 
 
 builder.Services.AddDbContext<EFDbContext>((cfg) =>
 {
-    cfg.UseLazyLoadingProxies();
     cfg.UseSqlite($"Data Source=domain.db");
-    cfg.EnableSensitiveDataLogging(false);
+    cfg.EnableSensitiveDataLogging(true);
 });
 
 builder.Services.AddCors();

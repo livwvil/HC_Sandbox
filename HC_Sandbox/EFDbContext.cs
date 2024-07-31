@@ -11,7 +11,7 @@ public class DeviceName : ValueObject<DeviceName>
         Value = name;
     }
     
-    public string Value { get; private set; }
+    public string Value { get; set; }
 
     protected override IEnumerable<object> GetEqualityComponents()
     {
@@ -29,51 +29,25 @@ public class Device
         Name = new(name);
     }
     
-    public Guid Id { get; private set; }
+    public Guid Id { get; set; }
 
-    public DeviceName Name { get; private set; }
-}
-
-public class Trip
-{
-    public Trip() { }
-
-    public Trip(Guid id, string name, Guid deviceId)
-    {
-        Id = id;
-        Name = new(name);
-        DeviceId = deviceId;
-    }
-
-    public Guid Id { get; private set; }
-
-    public Guid DeviceId { get; private set; }
-
-    public string Name { get; private set; }
+    public DeviceName Name { get; set; }
 }
 
 public class EFDbContext(DbContextOptions<EFDbContext> options) : DbContext(options)
 {
     public DbSet<Device> Devices { get; set; }
-    public DbSet<Trip> Trips { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Device>()
             .OwnsOne(x => x.Name);
-        modelBuilder.Entity<Device>()
-            .HasMany<Trip>()
-            .WithOne()
-            .HasForeignKey(x => x.DeviceId);
     }
 
     public static void Populate(EFDbContext context)
     {
         var d1 = new Device(new("00000000-0000-0000-0000-000000000001"), "dev1");
         context.Devices.Add(d1);
-
-        var t1 = new Trip(new("00000000-0000-0000-0000-100000000003"), "trip1", d1.Id);
-        context.Trips.Add(t1);
         
         context.SaveChanges();
     }
